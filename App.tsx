@@ -6,28 +6,48 @@ import {
 
 function App(): JSX.Element {
   const [data, setData] = useState<string>();
-  const client = TcpSocket.createConnection({ port: 3001, host: 'localhost' }, () => {
-    console.log('Connected to the server!');
-    client.write('Hello from Client');
+
+  const server = TcpSocket.createServer(function (socket) {
+    socket.on('data', (data) => {
+      console.log('We are getting data');
+      console.log(data);
+    });
+
+    socket.on('error', (error) => {
+      console.log('An error ocurred with client socket ', error);
+    });
+
+    socket.on('close', (error) => {
+      console.log('Closed connection with ', socket.address());
+    });
+  }).listen({ port: 1993, host: '0.0.0.0' });
+
+  server.on('error', (error) => {
+    console.log('An error ocurred with the server', error);
   });
 
-  client.on('data', (data) => {
-    console.log('Server responded with: ', data.toString());
-    setData(data.toString())
+  server.on('close', () => {
+    console.log('Server closed connection');
   });
 
-  client.on('error', (error) => {
-    console.log(error);
-  });
+  // const client = TcpSocket.createConnection({ port: 1993, host: '0.0.0.0' }, () => { });
 
-  client.on('close', () => {
-    console.log('Connection closed');
-  });
+  // client.on('data', (data) => {
+  //   console.log(data);
+  //   setData(data.toString())
+  // });
 
+  // client.on('error', (error) => {
+  //   console.log(error);
+  // });
+
+  // client.on('close', () => {
+  //   console.log('Connection closed');
+  // });
 
   return (
     <SafeAreaView >
-      <Text style={{fontSize: 30, textAlign: 'center'}}>{data}</Text>
+      <Text style={{ fontSize: 30, textAlign: 'center' }}>{data}</Text>
     </SafeAreaView>
   );
 }
